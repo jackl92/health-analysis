@@ -1,144 +1,167 @@
-# Voice Health Analysis
+# 🎤 Voice Health Analysis
 
-Machine learning project analyzing voice/audio features to predict health status and explore patterns that distinguish healthy from unhealthy voices.
+> Machine learning analysis of voice/audio features to predict health status from speech patterns
 
-## Project Overview
+[![Python](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.7.2-orange.svg)](https://scikit-learn.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-This project performs exploratory data analysis (EDA) and predictive modeling on audio features extracted from vowel "A" sound recordings. The analysis identifies key differences between healthy and unhealthy individuals and builds classification models to predict health status based on voice characteristics.
+---
 
-**Key Focus Areas:**
-- Spectral features (bandwidth, centroid, rolloff)
-- Energy metrics (RMSE, zero crossing rate)
-- Mel-frequency cepstral coefficients (MFCCs 1-20)
-- Gender-specific patterns
-- Age effects on voice characteristics
+## 📊 Project Overview
 
-## Dataset
+Exploratory data analysis and predictive modeling on voice recordings to identify acoustic patterns distinguishing healthy from unhealthy individuals. Analysis of **2,037 voice samples** across **27 audio features** including spectral characteristics, energy metrics, and MFCCs.
 
-- **Source**: `VowelA_High_latest.csv`
-- **Size**: 2,037 voice recordings
-- **Features**: 27 audio features + 2 demographic variables
-  - **Audio features**: chroma_stft, rmse, spectral_centroid, spectral_bandwidth, rolloff, zero_crossing_rate, mfcc1-mfcc20
-  - **Demographics**: age, gender
-  - **Target**: health_status (healthy/unhealthy)
+### 🎯 Key Objectives
+- Identify voice characteristics that differ between healthy/unhealthy individuals
+- Build ML models to classify health status from voice features
+- Analyze gender-specific patterns in voice health indicators
 
-## Key Findings
+---
 
-### Demographics
-- **Age distribution**: Mean 40.7 years (±18.0)
-  - Healthy median: 22 years
-  - Unhealthy median: 52 years
-  - ⚠️ **Critical finding**: 30-year age difference between groups indicates age is a major confounding variable
+## 📁 Dataset
+
+| Attribute | Details |
+|-----------|---------|
+| **Source** | VowelA_High_latest.csv |
+| **Samples** | 2,037 voice recordings |
+| **Features** | 27 audio + 2 demographic |
+| **Target** | health_status (healthy/unhealthy) |
+| **Split** | 66.2% unhealthy, 33.8% healthy |
+
+**Audio Features:** spectral_centroid, spectral_bandwidth, rolloff, rmse, zero_crossing_rate, chroma_stft, mfcc1-20  
+**Demographics:** age, gender
+
+---
+
+## 🔍 Key Findings
+
+### 📈 Demographics
+- **Age Gap**: Unhealthy group is 30 years older (median: 52 vs 22) ⚠️ *Major confounder*
 - **Gender**: 56.8% female, 43.2% male
-- **Class imbalance**: 66.2% unhealthy, 33.8% healthy
+- **Imbalance**: 2:1 unhealthy to healthy ratio
 
-### Voice Characteristics
+### 🎵 Voice Patterns
 
-**Spectral Centroid** (voice brightness/perceived pitch):
-- Unhealthy individuals show ~100-150 Hz lower spectral centroid
-- Both genders shift toward darker, less bright voices when unhealthy
-- Female voices drop more dramatically: ~1250 Hz → ~1100 Hz
-- Male voices: ~1050 Hz → ~950 Hz
-- Convergence effect: Unhealthy voices become less gender-distinct
+| Feature | Healthy | Unhealthy | Insight |
+|---------|---------|-----------|---------|
+| **Spectral Centroid** | Higher (~1200 Hz) | Lower (~1000 Hz) | Darker, less bright voices |
+| **Spectral Bandwidth** | Concentrated | Scattered | More irregular frequencies |
+| **Rolloff** | Consistent | Variable (1000-8000 Hz) | Breathiness & instability |
+| **RMSE** | Higher | Lower | Reduced vocal energy |
 
-**Spectral Bandwidth** (frequency spread/irregularity):
-- Unhealthy voices have more scattered, irregular frequency patterns
-- Healthy voices show concentrated, stable distributions
-- **Strong gender effect**: Males show much more variability when unhealthy
-- Females remain relatively similar whether healthy or unhealthy
+### 💡 Clinical Insights
+- **Healthy**: Stable, bright, clear voice quality with consistent patterns
+- **Unhealthy**: Darker tone, irregular frequencies, vocal fatigue, reduced breath support
+- **Gender Effect**: Males show dramatic changes; females remain relatively stable
 
-**Rolloff** (high-frequency cutoff):
-- Healthy individuals: Tight, consistent rolloff distributions
-- Unhealthy males: Extreme variability (1000-8000 Hz range!)
-- Unhealthy females: Minimal changes compared to healthy
-- High rolloff in unhealthy voices suggests breathiness and vocal instability
+---
 
-**RMSE** (voice energy/loudness):
-- Range: 0.0-0.4 (normalized amplitude)
-- Differences between healthy/unhealthy suggest vocal fatigue or reduced breath support
+## 🤖 Machine Learning
 
-**Zero Crossing Rate** (breathiness/noise):
-- Higher rates indicate more noise, fricative sounds, or breathiness
-- Useful indicator of vocal quality degradation
-
-**MFCCs** (spectral shape):
-- Low to moderate correlations (mostly < 0.4) = good feature diversity
-- No multicollinearity issues for modeling
-- Each MFCC captures complementary voice information
-
-### Clinical Interpretation
-
-**Healthy voices:**
-- Concentrated, stable frequency patterns
-- Consistent spectral characteristics
-- Brighter, clearer sound quality
-- Low variability within groups
-
-**Unhealthy voices:**
-- Scattered, irregular frequencies
-- High variability (especially in males)
-- Darker, less clear sound
-- Loss of spectral clarity and brightness
-- Indicators of vocal fatigue, reduced breath support, and irregular voice production
-
-## Machine Learning Results
-
-### Models Tested
-- **Logistic Regression** (baseline)
-- **Random Forest** (ensemble method)
-- **Support Vector Machine** (SVM)
-- **Gradient Boosting** (advanced ensemble)
-- **Neural Network** (deep learning)
-- **K-Nearest Neighbors** (KNN)
+### Models Evaluated
+```
+✓ Logistic Regression    (baseline)
+✓ Random Forest          (ensemble)
+✓ SVM                    (kernel-based)
+✓ Gradient Boosting      (advanced ensemble)
+✓ Neural Network         (deep learning)
+✓ K-Nearest Neighbors    (instance-based)
+```
 
 ### Performance
-Models evaluated using 5-fold cross-validation with accuracy as the primary metric. The best performing model is automatically selected and evaluated on the held-out test set.
+- **Evaluation**: 5-fold cross-validation
+- **Metric**: Accuracy (primary)
+- **Handling**: Class imbalance via `class_weight='balanced'`
+- **Preprocessing**: StandardScaler + one-hot encoding
 
-**Key Considerations:**
-- Models handle class imbalance using `class_weight='balanced'`
-- Features are standardized using StandardScaler
-- Gender is one-hot encoded
-- 80/20 train-test split with stratification
+---
 
-## Repository Structure
+## 🗂️ Repository Structure
 
 ```
 health-analysis/
-├── data/
+├── 📂 data/
 │   ├── VowelA_High_latest.csv       # Original dataset
-│   └── cleaned_health_data.csv      # Processed data (standardized labels)
-├── plots/                            # Generated visualizations (300 DPI PNG)
-├── health_analysis_eda.ipynb        # Exploratory data analysis
-├── health_analysis_prediction.ipynb # Machine learning models
-├── requirements.txt                  # Python dependencies
-└── README.md                         # This file
+│   └── cleaned_health_data.csv      # Preprocessed data
+├── 📂 plots/                         # Auto-saved visualizations (300 DPI)
+├── 📓 health_analysis_eda.ipynb     # Exploratory analysis
+├── 📓 health_analysis_prediction.ipynb  # ML models
+├── 📄 requirements.txt               # Dependencies
+└── 📄 README.md                      # This file
 ```
 
-## Setup & Installation
+---
 
-### Requirements
+## 🚀 Quick Start
+
+### Installation
 ```bash
 pip install -r requirements.txt
 ```
 
-### Dependencies
-- numpy==2.3.4
-- pandas==2.3.3
-- matplotlib==3.10.7
-- seaborn==0.13.2
-- scikit-learn==1.7.2
-
-## Usage
-
-### 1. Exploratory Data Analysis
+### Run Analysis
 ```bash
+# EDA notebook
 jupyter notebook health_analysis_eda.ipynb
+
+# ML modeling
+jupyter notebook health_analysis_prediction.ipynb
 ```
 
-**What it includes:**
-- Data cleaning and preprocessing
-- Demographics visualizations (age, gender, health status)
-- Audio feature distributions
-- Gender-stratified analysis
-- MFCC correlation matrix
-- All plots auto-saved to `plots/` folder at 300 DPI
+---
+
+## 📊 Visualizations
+
+### Color Palette
+- 🟢 **Healthy**: `#66c2a5` (teal)
+- 🟠 **Unhealthy**: `#fc8d62` (orange)  
+- 🔵 **Male**: `#8da0cb` (blue)
+- 🌸 **Female**: `#e78ac3` (rose)
+
+All plots auto-saved to `plots/` at 300 DPI for publication quality.
+
+---
+
+## ⚠️ Important Notes
+
+> **Age Confounder**: 30-year age gap between groups means many "health" differences may actually be age effects. Future work should control for age.
+
+> **Gender Differences**: Males show dramatic voice changes when unhealthy; females don't. Consider gender-specific models.
+
+> **Class Imbalance**: 2:1 ratio requires careful evaluation beyond accuracy (use precision, recall, F1).
+
+---
+
+## 🎯 Key Takeaways
+
+1. ✅ Voice characteristics **significantly differ** between healthy/unhealthy groups
+2. ⚠️ **Age is the primary driver** - 30-year gap is critical confounder
+3. 🚻 **Gender matters** - males show stronger health-related changes
+4. 🤖 **ML models achieve reasonable accuracy**, but likely rely heavily on age
+5. 🎵 **Multiple audio features** provide complementary health information
+
+---
+
+## 🔮 Future Work
+
+- [ ] Age-matched group comparisons
+- [ ] Gender-stratified models
+- [ ] Feature selection & dimensionality reduction
+- [ ] Deep learning (CNN/LSTM) for temporal patterns
+- [ ] External dataset validation
+- [ ] Clinical expert collaboration
+
+---
+
+## 📦 Dependencies
+
+```
+numpy==2.3.4
+pandas==2.3.3
+matplotlib==3.10.7
+seaborn==0.13.2
+scikit-learn==1.7.2
+```
+
+---
