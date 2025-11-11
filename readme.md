@@ -70,6 +70,7 @@ Exploratory data analysis and predictive modeling on voice recordings to identif
 ```
 
 ### Performance
+- **Best Model**: 85% accuracy
 - **Evaluation**: 5-fold cross-validation
 - **Metric**: Accuracy (primary)
 - **Handling**: Class imbalance via `class_weight='balanced'`
@@ -82,13 +83,16 @@ Exploratory data analysis and predictive modeling on voice recordings to identif
 ```
 health-analysis/
 ├── 📂 data/
-│   ├── VowelA_High_latest.csv       # Original dataset
-│   └── cleaned_health_data.csv      # Preprocessed data
-├── 📂 plots/                         # Auto-saved visualizations (300 DPI)
-├── 📓 health_analysis_eda.ipynb     # Exploratory analysis
+│   ├── VowelA_High_latest.csv           # Original dataset
+│   └── cleaned_health_data.csv          # Preprocessed data
+├── 📂 plots/                             # Auto-saved visualizations (300 DPI)
+├── 📂 presentations/
+│   └── health_analysis.key              # Keynote presentation
+├── 📓 health_analysis_eda.ipynb         # Exploratory analysis
 ├── 📓 health_analysis_prediction.ipynb  # ML models
-├── 📄 requirements.txt               # Dependencies
-└── 📄 README.md                      # This file
+├── 📄 presentation_keynote.md           # Presentation outline
+├── 📄 requirements.txt                  # Dependencies
+└── 📄 README.md                         # This file
 ```
 
 ---
