@@ -13,15 +13,68 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Set matplotlib to non-interactive backend for faster rendering
+plt.switch_backend('Agg')
+plt.ioff()  # Turn off interactive mode
+
 # Color palettes
 HEALTH_COLORS = {'healthy': '#66c2a5', 'unhealthy': '#fc8d62'}
 GENDER_COLORS = {'male': '#8da0cb', 'female': '#e78ac3'}
 
-# Load data
-@st.cache_data
+# Load data with caching
+@st.cache_data(ttl=3600)  # Cache for 1 hour
 def load_data():
     df = pd.read_csv('data/cleaned_health_data.csv')
     return df
+
+# Cache plotting functions
+@st.cache_data
+def create_age_distribution_plot(data, health_status_list):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    for status in health_status_list:
+        subset = data[data['health_status'] == status]['age']
+        ax.hist(subset, bins=30, alpha=0.6, label=status, color=HEALTH_COLORS[status])
+    ax.set_xlabel('Age', fontsize=12)
+    ax.set_ylabel('Count', fontsize=12)
+    ax.set_title('Age Distribution by Health Status', fontsize=14)
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    return fig
+
+@st.cache_data
+def create_health_gender_plot(data):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    gender_health = data.groupby(['health_status', 'gender']).size().unstack()
+    gender_health.plot(kind='bar', ax=ax, color=[GENDER_COLORS['female'], GENDER_COLORS['male']])
+    ax.set_xlabel('Health Status', fontsize=12)
+    ax.set_ylabel('Count', fontsize=12)
+    ax.set_title('Health Status Distribution by Gender', fontsize=14)
+    ax.legend(title='Gender')
+    ax.grid(True, alpha=0.3, axis='y')
+    plt.xticks(rotation=0)
+    return fig
+
+@st.cache_data
+def create_feature_histogram(data, feature, health_status_list):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    for status in health_status_list:
+        subset = data[data['health_status'] == status][feature]
+        ax.hist(subset, bins=30, alpha=0.6, label=status, color=HEALTH_COLORS[status], edgecolor='black')
+    ax.set_xlabel(feature.replace('_', ' ').title(), fontsize=12)
+    ax.set_ylabel('Count', fontsize=12)
+    ax.set_title(f'{feature.replace("_", " ").title()} Distribution', fontsize=14)
+    ax.legend()
+    ax.grid(True, alpha=0.3, axis='y')
+    return fig
+
+@st.cache_data
+def create_mfcc_correlation_matrix(data, mfcc_cols):
+    fig, ax = plt.subplots(figsize=(14, 10))
+    correlation_matrix = data[mfcc_cols].corr()
+    sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap='coolwarm', center=0, 
+                square=True, linewidths=0.5, cbar_kws={"shrink": 0.8}, ax=ax)
+    ax.set_title('MFCC Correlation Matrix', fontsize=16, pad=20)
+    return fig
 
 # Main app
 def main():
@@ -131,17 +184,9 @@ def main():
         
         with col1:
             st.subheader("Age Distribution by Health Status")
-            fig, ax = plt.subplots(figsize=(10, 6))
-            for status in filtered_df['health_status'].unique():
-                data = filtered_df[filtered_df['health_status'] == status]['age']
-                ax.hist(data, bins=30, alpha=0.6, label=status, color=HEALTH_COLORS[status])
-            ax.set_xlabel('Age', fontsize=12)
-            ax.set_ylabel('Count', fontsize=12)
-            ax.set_title('Age Distribution by Health Status', fontsize=14)
-            ax.legend()
-            ax.grid(True, alpha=0.3)
-            st.pyplot(fig)
-            plt.close()
+            fig = create_age_distribution_plot(filtered_df, filtered_df['health_status'].unique())
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
             
             # Age stats
             st.markdown("**Age Statistics:**")
@@ -151,19 +196,9 @@ def main():
         
         with col2:
             st.subheader("Health Status by Gender")
-            fig, ax = plt.subplots(figsize=(10, 6))
-            
-            gender_health = filtered_df.groupby(['health_status', 'gender']).size().unstack()
-            gender_health.plot(kind='bar', ax=ax, color=[GENDER_COLORS['female'], GENDER_COLORS['male']])
-            
-            ax.set_xlabel('Health Status', fontsize=12)
-            ax.set_ylabel('Count', fontsize=12)
-            ax.set_title('Health Status Distribution by Gender', fontsize=14)
-            ax.legend(title='Gender')
-            ax.grid(True, alpha=0.3, axis='y')
-            plt.xticks(rotation=0)
-            st.pyplot(fig)
-            plt.close()
+            fig = create_health_gender_plot(filtered_df)
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
             
             # Gender stats
             st.markdown("**Gender Distribution:**")
@@ -204,19 +239,9 @@ def main():
         
         with col1:
             st.subheader(f"{selected_feature.replace('_', ' ').title()} by Health Status")
-            fig, ax = plt.subplots(figsize=(10, 6))
-            
-            for status in filtered_df['health_status'].unique():
-                data = filtered_df[filtered_df['health_status'] == status][selected_feature]
-                ax.hist(data, bins=30, alpha=0.6, label=status, color=HEALTH_COLORS[status], edgecolor='black')
-            
-            ax.set_xlabel(selected_feature.replace('_', ' ').title(), fontsize=12)
-            ax.set_ylabel('Count', fontsize=12)
-            ax.set_title(f'{selected_feature.replace("_", " ").title()} Distribution', fontsize=14)
-            ax.legend()
-            ax.grid(True, alpha=0.3, axis='y')
-            st.pyplot(fig)
-            plt.close()
+            fig = create_feature_histogram(filtered_df, selected_feature, filtered_df['health_status'].unique())
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
             
             # Statistics
             st.markdown("**Statistics by Health Status:**")
@@ -252,8 +277,8 @@ def main():
             ax2.grid(True, alpha=0.3, axis='y')
             
             plt.tight_layout()
-            st.pyplot(fig)
-            plt.close()
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
         
         st.markdown("---")
         st.subheader("📊 Box Plot Comparison")
@@ -264,8 +289,8 @@ def main():
         ax.set_ylabel(selected_feature.replace('_', ' ').title(), fontsize=12)
         ax.set_title(f'{selected_feature.replace("_", " ").title()} by Health & Gender', fontsize=14)
         plt.suptitle('')  # Remove default title
-        st.pyplot(fig)
-        plt.close()
+        st.pyplot(fig, use_container_width=True)
+        plt.close(fig)
     
     # Tab 4: MFCCs
     with tab4:
@@ -277,13 +302,10 @@ def main():
         st.subheader("MFCC Correlation Matrix")
         st.markdown("Low correlations (< 0.4) indicate good feature diversity - each MFCC captures unique information.")
         
-        fig, ax = plt.subplots(figsize=(14, 10))
-        correlation_matrix = filtered_df[mfcc_cols].corr()
-        sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap='coolwarm', center=0, 
-                    square=True, linewidths=0.5, cbar_kws={"shrink": 0.8}, ax=ax)
-        ax.set_title('MFCC Correlation Matrix', fontsize=16, pad=20)
-        st.pyplot(fig)
-        plt.close()
+        with st.spinner("Generating correlation matrix..."):
+            fig = create_mfcc_correlation_matrix(filtered_df, mfcc_cols)
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
         
         st.markdown("---")
         
@@ -302,8 +324,8 @@ def main():
             ax.set_title(f'{selected_mfcc.upper()} Distribution by Health Status', fontsize=14)
             ax.legend()
             ax.grid(True, alpha=0.3, axis='y')
-            st.pyplot(fig)
-            plt.close()
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
         
         with col2:
             st.subheader("MFCC Summary Statistics")
@@ -352,8 +374,8 @@ def main():
             ax.set_title(f'{y_feature.replace("_", " ").title()} vs {x_feature.replace("_", " ").title()}', fontsize=14)
             ax.legend()
             ax.grid(True, alpha=0.3)
-            st.pyplot(fig)
-            plt.close()
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
             
         elif plot_type == "Hexbin Plot":
             fig, ax = plt.subplots(figsize=(12, 8))
@@ -363,8 +385,8 @@ def main():
             ax.set_ylabel(y_feature.replace('_', ' ').title(), fontsize=12)
             ax.set_title(f'{y_feature.replace("_", " ").title()} vs {x_feature.replace("_", " ").title()} (Density)', fontsize=14)
             plt.colorbar(hexbin, ax=ax, label='Count')
-            st.pyplot(fig)
-            plt.close()
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
             
         else:  # Box Plot
             fig, ax = plt.subplots(figsize=(12, 8))
@@ -373,8 +395,8 @@ def main():
             ax.set_ylabel(y_feature.replace('_', ' ').title(), fontsize=12)
             ax.set_title(f'{y_feature.replace("_", " ").title()} by Health Status', fontsize=14)
             plt.suptitle('')
-            st.pyplot(fig)
-            plt.close()
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
         
         # Correlation analysis
         st.markdown("---")
