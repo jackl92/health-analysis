@@ -88,9 +88,9 @@ health-analysis/
 ├── 📂 plots/                             # Auto-saved visualizations (300 DPI)
 ├── 📂 presentations/
 │   └── health_analysis.key              # Keynote presentation
+    └── health_analysis.pptx             # Powerpoint presentation
 ├── 📓 health_analysis_eda.ipynb         # Exploratory analysis
 ├── 📓 health_analysis_prediction.ipynb  # ML models
-├── 📄 presentation_keynote.md           # Presentation outline
 ├── 📄 requirements.txt                  # Dependencies
 └── 📄 README.md                         # This file
 ```
